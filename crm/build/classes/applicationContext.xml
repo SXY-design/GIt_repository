@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+	
+	<!-- 开启注解模式注入 -->
+	<context:annotation-config></context:annotation-config>
+	
+	<!-- 引入jdbc.propertie相关配置============================ -->
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	<!-- 配置DataSource c3p0连接池================================ -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.url}"></property>
+		<property name="user" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	
+	<!-- 整合spring和hibernate============================= -->
+	<!-- 1、配置SessionFactory========================== -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+	<!-- 2、在sessionFactory中引入c3p0连接池============================= -->
+	<property name="dataSource" ref="dataSource"></property>
+	<!-- 3、在sessionFactory中配置hibernate相关属性============================= -->
+	<property name="hibernateProperties">
+		<props>
+			<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+			<prop key="hibernate.show_sql">true</prop>
+			<prop key="hibernate.format_sql">true</prop>
+			<prop key="hibernate.hbm2ddl.auto">update</prop>
+		</props>
+	</property>
+	<property name="mappingResources">
+		<list>
+			<value>com/itheima/domain/User.hbm.xml</value>
+			<value>com/itheima/domain/Customer.hbm.xml</value>
+			<value>com/itheima/domain/BaseDict.hbm.xml</value>
+			<value>com/itheima/domain/LinkMan.hbm.xml</value>
+			<value>com/itheima/domain/SaleVisit.hbm.xml</value>
+		</list>
+	</property>
+	</bean>
+	
+	<!-- 整合spring和Struts============================== -->
+	<bean id="userAction" class="com.itheima.web.action.UserAction" scope="prototype">
+		<property name="userService" ref="userService"></property>
+	</bean>
+	
+	<!-- 配置UserDao===================== -->
+	<bean id="userDao" class="com.itheima.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 配置UserService====================== -->
+	<bean id="userService" class="com.itheima.service.impl.UserServiceImpl">
+		<property name="userDao" ref="userDao"></property>
+	</bean>
+	
+	<!-- 配置Customer的action，service，dao===================== -->
+	<bean id="customerAction" class="com.itheima.web.action.CustomerAction" scope="prototype">
+		<property name="customerService" ref="customerService"></property>
+	</bean>
+	<bean id="customerService" class="com.itheima.service.impl.CustomerServiceImpl">
+		<property name="customerDao" ref="customerDao"></property>
+	</bean>
+	<bean id="customerDao" class="com.itheima.dao.impl.CustomerDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 配置BaseDict的dao，service，action -->
+	<bean id="baseDictDao" class="com.itheima.dao.impl.BaseDictDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="baseDictService" class="com.itheima.service.impl.BaseDictServiceImpl">
+		<property name="baseDictDao" ref="baseDictDao"></property>
+	</bean>
+	<bean id="baseDictAction" class="com.itheima.web.action.BaseDictAction">
+		<property name="baseDictService" ref="baseDictService"></property>
+	</bean>
+	
+	<!-- 配置linkMan的action，service，dao -->
+	<bean id="linkManAction" class="com.itheima.web.action.LinkManAction">
+		<property name="linkManService" ref="linkManService"></property>
+		<property name="customerService" ref="customerService"></property>
+	</bean>
+	<bean id="linkManService" class="com.itheima.service.impl.LinkManServiceImpl">
+		<property name="linkManDao" ref="linkManDao"></property>
+	</bean>
+	<bean id="linkManDao" class="com.itheima.dao.impl.LinkManDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 配置SaleVisit的action，service，dao -->
+	<bean id="saleVisitAction" class="com.itheima.web.action.SaleVisitAction"></bean>
+	<bean id="saleVisitService" class="com.itheima.service.impl.SaleVisitServiceImpl"></bean>
+	<bean id="saleVisitDao" class="com.itheima.dao.impl.SaleVisitDaoImpl">
+		<!-- sessionFactory无法用注解注入，只能用property注入 -->
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!-- 配置平台事务管理器 ==================-->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 开启注解事务====================== -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	
+</beans>
+

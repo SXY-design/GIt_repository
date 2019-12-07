@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+    <hibernate-mapping>
+    	<class name="com.itheima.domain.Customer" table="cst_customer">
+    		<id name="cust_id" column="cust_id">
+    			<generator class="native"></generator>
+    		</id>
+    		<property name="cust_name" column="cust_name"></property>
+    		
+    		<!-- <property name="cust_source" column="cust_source"></property>
+    		<property name="cust_industry" column="cust_industry"></property>
+    		<property name="cust_level" column="cust_level"></property> -->
+    		
+    		<property name="cust_phone" column="cust_phone"></property>
+    		<property name="cust_mobile" column="cust_mobile"></property>
+    		<property name="cust_image" column="cust_image"></property>
+    		
+    		<many-to-one name="baseDictSource" class="com.itheima.domain.BaseDict" column="cust_source"></many-to-one>
+    		<many-to-one name="baseDictIndustry" class="com.itheima.domain.BaseDict" column="cust_industry"></many-to-one>
+    		<many-to-one name="baseDictLevel" class="com.itheima.domain.BaseDict" column="cust_level"></many-to-one>
+    		
+    		<!-- 配置与LinkMan一对多的映射 -->
+    		<!-- cascade:级联删除 -->
+    		<!-- inverse:一的一方有外键维护权，如果不去掉外键维护权，当修改一的一方的时候，默认也会修改一的一方对应的外键的内容，如果外键没有内容，就会将其置空 -->
+    		<set name="linkMans" cascade="delete" inverse="true">
+    			<key column="lkm_cust_id"></key>
+    			<one-to-many class="com.itheima.domain.LinkMan"/>
+    		</set>
+    	</class>
+    </hibernate-mapping>
